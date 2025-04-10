@@ -6,6 +6,7 @@ import {Input} from '@/components/ui/input';
 import {Textarea} from '@/components/ui/textarea';
 import {useEffect, useState} from 'react';
 import {generateRecipe, GenerateRecipeOutput} from '@/ai/flows/generate-recipe';
+import {toast} from "@/hooks/use-toast";
 
 export default function Home() {
   const [ingredients, setIngredients] = useState('');
@@ -16,7 +17,14 @@ export default function Home() {
     // Load favorite recipes from local storage on mount
     const storedFavorites = localStorage.getItem('favoriteRecipes');
     if (storedFavorites) {
-      setFavoriteRecipes(JSON.parse(storedFavorites));
+      try {
+        setFavoriteRecipes(JSON.parse(storedFavorites));
+      } catch (error) {
+        console.error("Failed to parse favorite recipes from local storage", error);
+        // Handle the error, possibly by clearing the invalid data
+        localStorage.removeItem('favoriteRecipes');
+        setFavoriteRecipes([]);
+      }
     }
   }, []);
 
@@ -27,8 +35,17 @@ export default function Home() {
 
   const handleGenerateRecipe = async () => {
     if (ingredients) {
-      const generatedRecipe = await generateRecipe({ingredients});
-      setRecipe(generatedRecipe);
+      try {
+        const generatedRecipe = await generateRecipe({ingredients});
+        setRecipe(generatedRecipe);
+      } catch (error: any) {
+        console.error("Failed to generate recipe", error);
+        toast({
+          title: "Error",
+          description: "Failed to generate recipe. Please try again.",
+          variant: "destructive",
+        });
+      }
     }
   };
 
@@ -38,10 +55,20 @@ export default function Home() {
         const isAlreadyFavorite = prevFavorites.some(favRecipe => favRecipe.recipeName === recipe.recipeName);
         if (isAlreadyFavorite) {
           // Recipe is already in favorites, so remove it
-          return prevFavorites.filter(favRecipe => favRecipe.recipeName !== recipe.recipeName);
+          const updatedFavorites = prevFavorites.filter(favRecipe => favRecipe.recipeName !== recipe.recipeName);
+          toast({
+            title: "Recipe Removed",
+            description: `${recipe.recipeName} removed from favorites.`,
+          });
+          return updatedFavorites;
         } else {
           // Recipe is not in favorites, so add it
-          return [...prevFavorites, recipe];
+          const updatedFavorites = [...prevFavorites, recipe];
+          toast({
+            title: "Recipe Added",
+            description: `${recipe.recipeName} added to favorites.`,
+          });
+          return updatedFavorites;
         }
       });
     }
@@ -50,9 +77,9 @@ export default function Home() {
   const isFavorite = recipe && favoriteRecipes.some(favRecipe => favRecipe.recipeName === recipe.recipeName);
 
   return (
-    <div className="flex flex-col items-center justify-start min-h-screen bg-background py-8">
-      <h1 className="text-4xl md:text-5xl font-bold text-primary mb-4">Fridge Feast</h1>
-      <Card className="w-full max-w-2xl p-4 md:p-6 space-y-4">
+    <div className="flex flex-col items-center justify-start min-h-screen py-8 px-4 bg-background">
+      <h1 className="text-4xl md:text-5xl font-bold text-primary mb-6">Fridge Feast</h1>
+      <Card className="w-full max-w-2xl mb-8">
         <CardHeader>
           <CardTitle className="text-2xl">Ingredients</CardTitle>
           <CardDescription>Enter the ingredients you have available:</CardDescription>
@@ -64,16 +91,17 @@ export default function Home() {
               placeholder="e.g., chicken, rice, vegetables"
               value={ingredients}
               onChange={e => setIngredients(e.target.value)}
+              className="input"
             />
           </div>
-          <Button onClick={handleGenerateRecipe} className="bg-primary text-primary-foreground hover:bg-primary/80">
+          <Button onClick={handleGenerateRecipe} className="btn bg-primary text-primary-foreground hover:bg-primary/80">
             Generate Recipe
           </Button>
         </CardContent>
       </Card>
 
       {recipe && (
-        <Card className="w-full max-w-2xl p-4 md:p-6 mt-8 space-y-4">
+        <Card className="w-full max-w-2xl mb-8">
           <CardHeader>
             <CardTitle className="text-2xl">{recipe.recipeName}</CardTitle>
             <CardDescription>Here's a recipe based on your ingredients:</CardDescription>
@@ -93,7 +121,7 @@ export default function Home() {
             </div>
             <Button
               onClick={handleAddToFavorites}
-              className={`bg-accent text-accent-foreground hover:bg-accent/80 ${isFavorite ? 'bg-destructive text-destructive-foreground hover:bg-destructive/80' : ''}`}
+              className={`btn ${isFavorite ? 'bg-destructive text-destructive-foreground hover:bg-destructive/80' : 'bg-accent text-accent-foreground hover:bg-accent/80'}`}
             >
               {isFavorite ? 'Remove from Favorites' : 'Add to Favorites'}
             </Button>
@@ -102,14 +130,14 @@ export default function Home() {
       )}
 
       {favoriteRecipes.length > 0 && (
-        <Card className="w-full max-w-2xl p-4 md:p-6 mt-8 space-y-4">
+        <Card className="w-full max-w-2xl">
           <CardHeader>
             <CardTitle className="text-2xl">Favorite Recipes</CardTitle>
             <CardDescription>Your saved favorite recipes:</CardDescription>
           </CardHeader>
           <CardContent className="grid gap-4">
             {favoriteRecipes.map((favRecipe, index) => (
-              <div key={index} className="border rounded-md p-4">
+              <div key={index} className="card p-4">
                 <h3 className="text-xl font-semibold">{favRecipe.recipeName}</h3>
                 <p>Ingredients: {favRecipe.ingredients.join(', ')}</p>
                 <p className="text-sm">Instructions: {favRecipe.instructions.substring(0, 100)}...</p>
