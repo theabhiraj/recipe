@@ -1,6 +1,7 @@
+'use client';
 
 import React from 'react';
-import { Geist, Geist_Mono } from 'next/font/google';
+import {Geist, Geist_Mono} from 'next/font/google';
 
 interface ClientBodyProps {
   children: React.ReactNode;
@@ -8,7 +9,7 @@ interface ClientBodyProps {
   geistMono: Geist_Mono;
 }
 
-export function ClientBody({ children, geistSans, geistMono }: ClientBodyProps) {
+export function ClientBody({children, geistSans, geistMono}: ClientBodyProps) {
   const bodyClass = `antialiased ${geistSans.variable} ${geistMono.variable}`;
 
   return (
@@ -17,5 +18,3 @@ export function ClientBody({ children, geistSans, geistMono }: ClientBodyProps) 
     </body>
   );
 }
-
-
