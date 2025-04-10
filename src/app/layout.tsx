@@ -22,7 +22,7 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const bodyClass = `${geistSans.variable} ${geistMono.variable}`;
+  const bodyClass = `antialiased ${geistSans.variable} ${geistMono.variable}`;
   return (
     <html lang="en" className="antialiased">
       <body className={bodyClass}>
