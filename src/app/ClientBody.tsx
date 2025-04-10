@@ -8,9 +8,7 @@ interface ClientBodyProps {
 
 export function ClientBody({children}: ClientBodyProps) {
   return (
-    <body>
       {children}
-    </body>
   );
 }
 

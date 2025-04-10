@@ -1,7 +1,6 @@
 import type {Metadata} from 'next';
 import {Geist, Geist_Mono} from 'next/font/google';
 import './globals.css';
-import {ClientBody} from "@/app/ClientBody";
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -12,6 +11,8 @@ const geistMono = Geist_Mono({
   variable: '--font-geist-mono',
   subsets: ['latin'],
 });
+
+const bodyClass = `antialiased ${geistSans.variable} ${geistMono.variable}`;
 
 export const metadata: Metadata = {
   title: 'Fridge Feast',
@@ -24,10 +25,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`antialiased ${geistSans.variable} ${geistMono.variable}`}>
-      <ClientBody>
+    <html lang="en" className="antialiased">
+      <body className={bodyClass}>
         {children}
-      </ClientBody>
+      </body>
     </html>
   );
 }
